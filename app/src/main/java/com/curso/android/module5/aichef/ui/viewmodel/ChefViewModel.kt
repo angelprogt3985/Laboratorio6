@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.map
 
 /**
  * =============================================================================
@@ -113,6 +114,9 @@ class ChefViewModel @Inject constructor(
             when (state) {
                 is AuthState.Authenticated -> {
                     firestoreRepository.observeUserRecipes(state.userId)
+                        .map { list ->
+                            list.map { it.copy() } // 🔑 CLAVE
+                        }
                 }
                 else -> flowOf(emptyList())
             }
@@ -403,4 +407,5 @@ class ChefViewModel @Inject constructor(
             )
         }
     }
+
 }

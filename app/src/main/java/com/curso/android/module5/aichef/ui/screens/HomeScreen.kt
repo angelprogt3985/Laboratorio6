@@ -40,6 +40,13 @@ import com.curso.android.module5.aichef.ui.viewmodel.ChefViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.Button
+
 
 /**
  * =============================================================================
@@ -69,8 +76,15 @@ fun HomeScreen(
     onNavigateToDetail: (String) -> Unit,
     onLogout: () -> Unit
 ) {
-    // Observar lista de recetas
     val recipes by viewModel.recipes.collectAsStateWithLifecycle()
+
+    var showFavoritesOnly by remember { mutableStateOf(false) }
+
+    val filteredRecipes = if (showFavoritesOnly) {
+        recipes.filter { it.isFavorite }
+    } else {
+        recipes
+    }
 
     Scaffold(
         topBar = {
@@ -107,30 +121,42 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        if (recipes.isEmpty()) {
-            // Estado vacío
-            EmptyRecipesState(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+
+            Button(
+                onClick = { showFavoritesOnly = !showFavoritesOnly },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            )
-        } else {
-            // Lista de recetas
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                items(
-                    items = recipes,
-                    key = { it.id } // Clave única para optimización
-                ) { recipe ->
-                    RecipeCard(
-                        recipe = recipe,
-                        onClick = { onNavigateToDetail(recipe.id) }
-                    )
+                Text(if (showFavoritesOnly) "Ver todas" else "Ver favoritas")
+            }
+            if (filteredRecipes.isEmpty()) {
+                EmptyRecipesState(
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(
+                        items = filteredRecipes,
+                        key = { it.id }
+                    ) { recipe ->
+                        RecipeCard(
+                            recipe = recipe,
+                            onClick = { onNavigateToDetail(recipe.id) },
+                            onFavoriteClick = {
+                                viewModel.toggleFavorite(recipe)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -144,7 +170,8 @@ fun HomeScreen(
 @Composable
 private fun RecipeCard(
     recipe: Recipe,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onFavoriteClick: (Recipe) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -183,6 +210,19 @@ private fun RecipeCard(
                         text = formatDate(recipe.createdAt),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = { onFavoriteClick(recipe) }) {
+                    Icon(
+                        imageVector = if (recipe.isFavorite)
+                            Icons.Filled.Favorite
+                        else
+                            Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Favorito",
+                        tint = if (recipe.isFavorite)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

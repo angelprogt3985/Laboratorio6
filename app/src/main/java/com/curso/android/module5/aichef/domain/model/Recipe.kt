@@ -69,7 +69,8 @@ data class Recipe(
                 steps = (data["steps"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
                 imageUri = data["imageUri"] as? String ?: "",
                 generatedImageUrl = data["generatedImageUrl"] as? String ?: "",
-                createdAt = (data["createdAt"] as? Long) ?: System.currentTimeMillis()
+                createdAt = (data["createdAt"] as? Long) ?: System.currentTimeMillis(),
+                isFavorite = data["isFavorite"] as? Boolean ?: false
             )
         }
     }
