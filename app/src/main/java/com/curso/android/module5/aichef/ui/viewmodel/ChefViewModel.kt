@@ -192,6 +192,8 @@ class ChefViewModel @Inject constructor(
         _authUiState.value = UiState.Idle
     }
 
+
+
     // =========================================================================
     // ACCIONES DE GENERACIÓN DE RECETAS
     // =========================================================================
@@ -391,5 +393,14 @@ class ChefViewModel @Inject constructor(
     fun clearImageState() {
         imageGenerationJob?.cancel()
         _imageGenerationState.value = UiState.Idle
+    }
+
+    fun toggleFavorite(recipe: Recipe) {
+        viewModelScope.launch {
+            firestoreRepository.toggleFavorite(
+                recipeId = recipe.id,
+                isFavorite = !recipe.isFavorite
+            )
+        }
     }
 }
