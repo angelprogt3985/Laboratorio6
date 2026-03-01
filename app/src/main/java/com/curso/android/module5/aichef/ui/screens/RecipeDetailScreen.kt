@@ -44,6 +44,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.curso.android.module5.aichef.domain.model.UiState
 import com.curso.android.module5.aichef.ui.viewmodel.ChefViewModel
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.curso.android.module5.aichef.util.ShareUtils
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.layer.drawLayer
+
 
 /**
  * =============================================================================
@@ -130,7 +144,10 @@ fun RecipeDetailScreen(
 
     // Estado de la generación de imagen
     val imageState by viewModel.imageGenerationState.collectAsStateWithLifecycle()
-
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isSharing by remember { mutableStateOf(false) }
+    val graphicsLayer = rememberGraphicsLayer()
     // =========================================================================
     // SIDE EFFECT: Verificar Cache o Generar Imagen
     // =========================================================================
@@ -178,6 +195,26 @@ fun RecipeDetailScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        },
+        floatingActionButton = {
+            if (recipe != null) {
+                FloatingActionButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            isSharing = true
+                            val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
+                            ShareUtils.shareRecipeImage(context, bitmap)
+                            isSharing = false
+                        }
+                    }
+                ) {
+                    if (isSharing) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    } else {
+                        Icon(Icons.Default.Share, contentDescription = "Compartir")
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         if (recipe == null) {
@@ -200,6 +237,10 @@ fun RecipeDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .drawWithContent {
+                        graphicsLayer.record { this@drawWithContent.drawContent() }
+                        drawLayer(graphicsLayer)
+                    }
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
