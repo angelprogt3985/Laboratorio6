@@ -47,7 +47,8 @@ data class Recipe(
         "steps" to steps,
         "imageUri" to imageUri,
         "generatedImageUrl" to generatedImageUrl,
-        "createdAt" to createdAt
+        "createdAt" to createdAt,
+        "isFavorite" to isFavorite
     )
 
     companion object {
