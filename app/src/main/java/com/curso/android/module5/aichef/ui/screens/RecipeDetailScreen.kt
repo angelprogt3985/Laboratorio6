@@ -244,6 +244,7 @@ fun RecipeDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
+
                 // Sección de imagen generada por IA con cache
                 RecipeImageSection(
                     imageState = imageState,
